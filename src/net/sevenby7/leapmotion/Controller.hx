@@ -17,7 +17,7 @@ class Controller extends EventDispatcher
 	public static inline var POLICY_DEFAULT:UInt = 0;
 	public static inline var POLICY_BACKGROUND_FRAMES:UInt = (1 << 0);
 	
-	private var _listener:IListener;
+	public var _listener:IListener;
 	
 	public var connection:ILeapConnection;
 	public var frameHistory:Vector<Frame> = new Vector<Frame>();
@@ -32,7 +32,7 @@ class Controller extends EventDispatcher
 		if (host == null && host == '' /*&& LeapNative.isSupported()*/)
 			connection = new LeapNative();
 		else
-			connection = new LeapSocket();
+			connection = new LeapSocket(this, host, port);
 	}
 	
 	
