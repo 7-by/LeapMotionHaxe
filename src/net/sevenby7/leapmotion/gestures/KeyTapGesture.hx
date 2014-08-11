@@ -7,5 +7,6 @@ class KeyTapGesture extends Gesture
 {
 	public function new()
 	{
+		super();
 	}
 }

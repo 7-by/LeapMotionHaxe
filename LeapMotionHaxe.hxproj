@@ -5,31 +5,30 @@
     <movie outputType="Application" />
     <movie input="" />
     <movie path="application.xml" />
-    <movie fps="60" />
-    <movie width="800" />
-    <movie height="480" />
+    <movie fps="0" />
+    <movie width="0" />
+    <movie height="0" />
     <movie version="3" />
     <movie minorVersion="0" />
     <movie platform="NME" />
-    <movie background="#000000" />
+    <movie background="#FFFFFF" />
     <movie preferredSDK=";3;" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="." />
+    <class path="src" />
   </classpaths>
   <!-- Build options -->
   <build>
     <option directives="" />
     <option flashStrict="False" />
-    <option noInlineOnDebug="False" />
-    <option mainClass="ApplicationMain" />
+    <option mainClass="net.sevenby7.leapmotion.Main" />
     <option enabledebug="True" />
     <option additional="" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
-    <!-- example: <library name="..." /> -->
+    <library name="nme" />
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
@@ -41,7 +40,7 @@
   </library>
   <!-- Paths to exclude from the Project Explorer tree -->
   <hiddenPaths>
-    <hidden path="obj" />
+    <!-- example: <hidden path="..." /> -->
   </hiddenPaths>
   <!-- Executed before build -->
   <preBuildCommand />

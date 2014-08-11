@@ -6,11 +6,6 @@ import net.sevenby7.leapmotion.gestures.SwipeGesture;
 import net.sevenby7.leapmotion.gestures.SwipeGesture;
 import net.sevenby7.leapmotion.gestures.CircleGesture;
 import net.sevenby7.leapmotion.gestures.Gesture;
-import flash.geom.Matrix;
-import flash.events.SecurityErrorEvent;
-import flash.net.Socket;
-import flash.system.Capabilities;
-import flash.events.ThrottleEvent;
 import haxe.Json;
 import net.sevenby7.leapmotion.Controller;
 import net.sevenby7.leapmotion.Frame;
@@ -23,6 +18,9 @@ import openfl.events.EventDispatcher;
 import openfl.events.IOErrorEvent;
 import openfl.events.ProgressEvent;
 import openfl.external.ExternalInterface;
+import openfl.geom.Matrix;
+import openfl.net.Socket;
+import openfl.system.Capabilities;
 import openfl.utils.ByteArray;
 import openfl.utils.Endian;
 
@@ -139,14 +137,14 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 
 		var utf8data:String;
 
-// Loop until data has been completely added to the frame
+		// Loop until data has been completely added to the frame
 		while (_socket.connected && _leapSocketFrame.addData(_socket))
 		{
 			_leapSocketFrame.binaryPayload.position = 0;
 			utf8data = _leapSocketFrame.binaryPayload.readUTFBytes(_leapSocketFrame.length);
 			parseJSON(Json.parse(utf8data));
 
-// Release current frame and create a new one
+			// Release current frame and create a new one
 			_leapSocketFrame = new LeapSocketFrame();
 		}
 	}
@@ -162,7 +160,6 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 
 	private inline function parseJSON(json:Dynamic):Void
 	{
-		var i:UInt;
 		var currentFrame:Frame;
 		var hand:Hand;
 		var arm:Arm;
@@ -175,7 +172,7 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 		var length:UInt;
 		var type:UInt;
 
-// Server-side events. Currently only deviceConnect events are supported.
+		// Server-side events. Currently only deviceConnect events are supported.
 		if (json.event)
 		{
 			switch (json.event.type)
@@ -197,12 +194,11 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 		}
 
 		currentFrame = new Frame();
-		currentFrame.controller = controller;
+		currentFrame.controller = _controller;
 
-// Hands
+		// Hands
 		if (json.hands)
 		{
-			i = 0;
 			length = json.hands.length;
 			for (i in 0...length)
 			{
@@ -226,7 +222,7 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 				hand.grabStrength = json.hands[i].grabStrength;
 				hand.translationVector = new Vector3(json.hands[i].t[0], json.hands[i].t[1], json.hands[i].t[2]);
 
-// Arm
+				// Arm
 				if (json.hands[i].armBasis)
 				{
 					arm = new Arm();
@@ -247,13 +243,13 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 			}
 		}
 
-// The current framerate (in frames per second) of the Leap Motion Controller.
+		// The current framerate (in frames per second) of the Leap Motion Controller.
 		currentFrame.currentFramesPerSecond = json.currentFramesPerSecond;
 
-// A unique ID for this Frame.
+		// A unique ID for this Frame.
 		currentFrame.id = json.id;
 
-// The InteractionBox class represents a box-shaped region completely within the field of view.
+		// The InteractionBox class represents a box-shaped region completely within the field of view.
 		if (json.interactionBox)
 		{
 			currentFrame.interactionBox = new InteractionBox();
@@ -263,10 +259,9 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 			currentFrame.interactionBox.depth = json.interactionBox.size[2];
 		}
 
-// Pointables
+		// Pointables
 		if (json.pointables)
 		{
-			i = 0;
 			length = json.pointables.length;
 			for (i in 0...length)
 			{
@@ -322,7 +317,7 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 					Finger(pointable).mcpPosition = new Vector3(json.pointables[i].mcpPosition[0], json.pointables[i].mcpPosition[1], json.pointables[i].mcpPosition[2]);
 					Finger(pointable).type = json.pointables[i].type;
 
-// Bones
+					// Bones
 					bone = new Bone();
 					bone.type = Bone.TYPE_METACARPAL;
 					bone.width = json.pointables[i].width;
@@ -366,10 +361,9 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 			}
 		}
 
-// Gestures
+		// Gestures
 		if (json.gestures)
 		{
-			i = 0;
 			length = json.gestures.length;
 			for (i in 0...length)
 			{
@@ -409,35 +403,32 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 						throw new Error("unkown gesture type");
 				}
 
-				var j:Int = 0;
 				var lengthInner:Int = 0;
 
 				if (json.gestures[i].handIds)
 				{
-					j = 0;
 					lengthInner = json.gestures[i].handIds.length;
-					for (j; j < lengthInner; ++j)
+					for (j in 0...lengthInner)
 					{
-					var gestureHand:Hand = getHandByID(currentFrame, json.gestures[i].handIds[j]);
-					gesture.hands.push(gestureHand);
+						var gestureHand:Hand = getHandByID(currentFrame, json.gestures[i].handIds[j]);
+						gesture.hands.push(gestureHand);
 					}
 				}
 
 				if (json.gestures[i].pointableIds)
 				{
-					j = 0;
 					lengthInner = json.gestures[i].pointableIds.length;
-					for (j; j < lengthInner; ++j)
+					for (j in 0...lengthInner)
 					{
-					var gesturePointable:Pointable = getPointableByID(currentFrame, json.gestures[i].pointableIds[j]);
-					if (gesturePointable)
-					{
-					gesture.pointables.push(gesturePointable);
+						var gesturePointable:Pointable = getPointableByID(currentFrame, json.gestures[i].pointableIds[j]);
+						if (gesturePointable)
+						{
+							gesture.pointables.push(gesturePointable);
+						}
 					}
-					}
-					if (gesture is CircleGesture && gesture.pointables.length > 0)
+					if (Type.getClass(gesture) == CircleGesture && gesture.pointables.length > 0)
 					{
-					(gesture as CircleGesture).pointable = gesture.pointables[0];
+						cast (gesture, CircleGesture).pointable = gesture.pointables[0];
 					}
 				}
 
@@ -450,13 +441,10 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 				{
 					case "start":
 						gesture.state = Gesture.STATE_START;
-						break;
 					case "update":
 						gesture.state = Gesture.STATE_UPDATE;
-						break;
 					case "stop":
 						gesture.state = Gesture.STATE_STOP;
-						break;
 					default:
 						gesture.state = Gesture.STATE_INVALID;
 				}
@@ -467,23 +455,23 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 			}
 		}
 
-// Rotation (since last frame), interpolate for smoother motion
+		// Rotation (since last frame), interpolate for smoother motion
 		if (json.r)
 			currentFrame.rotation = new Matrix(new Vector3(json.r[0][0], json.r[0][1], json.r[0][2]), new Vector3(json.r[1][0], json.r[1][1], json.r[1][2]), new Vector3(json.r[2][0], json.r[2][1], json.r[2][2]));
 
-// Scale factor (since last frame), interpolate for smoother motion
+		// Scale factor (since last frame), interpolate for smoother motion
 		currentFrame.scaleFactorNumber = json.s;
 
-// Translation (since last frame), interpolate for smoother motion
+		// Translation (since last frame), interpolate for smoother motion
 		if (json.t)
 			currentFrame.translationVector = new Vector3(json.t[0], json.t[1], json.t[2]);
 
-// Timestamp
+		// Timestamp
 		currentFrame.timestamp = json.timestamp;
 
 		if (currentState == STATE_OPEN)
 		{
-// Add frame to history
+			// Add frame to history
 			if (controller.frameHistory.length > 59)
 				controller.frameHistory.splice(59, 1);
 
@@ -491,17 +479,17 @@ class LeapSocket extends EventDispatcher implements ILeapConnection
 
 			_frame = currentFrame;
 
-			controller.leapmotion::listener.onFrame(controller, _frame);
+			_controller._listener.onFrame(_controller, _frame);
 		}
 		else if (currentState == STATE_VERSION && json.version)
 		{
-			if (json.version != = protocol)
+			if (json.version != protocol)
 				throw new Error("Please update the Leap App (Invalid protocol version)");
 
 			sendUTF("{\"focused\": true}");
 
 			currentState = STATE_OPEN;
-			controller.leapmotion::listener.onConnect(controller);
+			_controller._listener.onConnect(controller);
 		}
 	}
 
